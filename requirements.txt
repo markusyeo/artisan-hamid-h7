@@ -1,2 +1,2 @@
 bleak
-websockets
+websockets==13.0
