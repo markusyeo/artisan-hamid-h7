@@ -92,12 +92,6 @@ class Machine:
             self.heater_value = int(heater_value_str)
             self.fan_value = int(fan_value_str)
 
-            # self.logger.info(
-            #     f"Received data: Bean Temp: {self.bean_temperature}, "
-            #     f"Environment Temp: {self.environment_temperature}, "
-            #     f"Heater Value: {self.heater_value}, "
-            #     f"Fan Value: {self.fan_value}")
-
             return True
         except Exception as e:
             self.logger.error(f"Error decoding message: {e}, Data: {data}")
