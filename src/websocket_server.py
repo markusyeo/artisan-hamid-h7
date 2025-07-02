@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import websockets
+from src.ble_client import BLEClient
 
 logger = logging.getLogger(__name__)
 

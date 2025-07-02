@@ -2,7 +2,7 @@ import asyncio
 import logging
 from bleak import BleakScanner, BleakClient
 from bleak.exc import BleakError
-from machine import Machine
+from src.machine import Machine
 import time
 
 logger = logging.getLogger(__name__)
