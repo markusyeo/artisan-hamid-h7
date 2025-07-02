@@ -1,2 +1,2 @@
-bleak
+bleak==0.22.3
 websockets==13.0
