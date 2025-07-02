@@ -4,7 +4,6 @@ import argparse
 import sys
 from src.ble_client import BLEClient
 from src.websocket_server import WebSocketServer
-from src.dev_mode import DevMode
 
 PORT = 8080
 DEVICE_NAME_PREFIX = "MATCHBOX"
@@ -55,13 +54,9 @@ async def main():
     else:
         print(f"Logging level set to {args.log_level.upper()}")
 
-    if args.dev:
-        logger.info("Starting in development mode")
-        dev_mode = DevMode(device_name_prefix=DEVICE_NAME_PREFIX)
-        await dev_mode.run()
-    else:
-        logger.info("Starting in normal mode")
-        await run_normal_mode()
+
+    logger.info("Starting in normal mode")
+    await run_normal_mode()
 
 if __name__ == "__main__":
     try:
