@@ -22,14 +22,32 @@ This repository contains the connection between Hamid H7 and Artisan. It integra
 
 ## Installation
 
-```bash
-# Clone this repository
-git clone https://github.com/your-username/artisan-hamid-h7.git
-cd artisan-hamid-h7
+1. Install Python
 
-# Install requirements
-pip install -r requirements.txt
-```
+   If you don't have Python installed, please download and install a version 3.10 or newer from the official Python website:
+
+   - [Download Python](https://www.python.org/downloads/)
+
+   ##### Verify Python Installation
+
+   After installation, open your terminal or command prompt and run the following command to verify that Python is installed correctly and to check its version:
+
+   ```bash
+   python --version
+   ```
+
+   You should see output similar to Python 3.10.x (where x is the patch version). If you see an error or a version older than 3.10, please ensure Python was installed correctly or consider reinstalling. On some systems, you might need to use python3 --version instead.
+
+2. Clone the Repository and Install Dependencies
+
+   ```bash
+   # Clone this repository
+   git clone https://github.com/your-username/artisan-hamid-h7.git
+   cd artisan-hamid-h7
+
+   # Install requirements
+   python -m pip install -r requirements.txt
+   ```
 
 ## Usage
 
