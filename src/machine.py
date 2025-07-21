@@ -186,6 +186,8 @@ class Machine:
         return await self.send_command(client, SerialCommands.FIRE_DOWN)
 
     async def set_pid(self, client: BleakClient, value: Union[int, float]) -> bool:
+        if value <= 0:
+            return False
         value_int: int = floor(value)
         command: str = SerialCommands.PID_VAL.replace("{n}", str(value_int))
         self.pid_value = value_int

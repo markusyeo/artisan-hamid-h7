@@ -122,7 +122,6 @@ class WebSocketServer:
             return
 
         response = {"id": req_id, **command_response}
-        print(f"Response for {command}: {response}")
 
         logger.debug(
             f"Sending response to {websocket.remote_address}: {json.dumps(response)}")
@@ -137,6 +136,9 @@ class WebSocketServer:
 
     async def stop(self) -> None:
         """Stops the WebSocket server gracefully."""
+        if self.command_handler:
+            await self.command_handler.cleanup_pending_commands()
+
         if self.server:
             self.server.close()
             await self.server.wait_closed()
