@@ -1,168 +1,120 @@
-# Artisan with Hamid H7/H7s Coffee Roaster
+# Artisan bridge for the Hamid H7/H7s coffee roaster
 
-This repository contains the connection between Hamid H7 and Artisan. It integrates Bluetooth connectivity with the H7 device to read and control the machine during coffee roasting with [Artisan](https://github.com/artisan-roaster-scope/artisan).
+Connects a Hamid H7/H7s roaster to [Artisan](https://github.com/artisan-roaster-scope/artisan). The bridge speaks Bluetooth Low Energy to the roaster and exposes a WebSocket server that Artisan reads temperatures from and sends control commands to.
 
 ## Features
 
-- 🖥️ **WebSocket Server**: Allows Artisan to communicate with the device on port 8080
-- 🔌 **BLE Connectivity**: Connects to Hamid H7/H7s via Bluetooth Low Energy (searches for "MATCHBOX" devices)
-- 🔥 **Heat Control**: Adjust heater power levels (0-100%)
-- 💨 **Fan Control**: Control fan speed settings (0-100%)
-- 🎛️ **PID Control**: Enable/disable PID temperature control and set targets
-- 🔄 **Auto Reconnect**: Automatically reconnects if the connection drops (up to 5 attempts with exponential backoff)
-- 📊 **Real-time Data**: Provides bean temperature (BT) and environment temperature (ET) readings
-- 💓 **Heartbeat**: Maintains connection with periodic keepalive messages
+- WebSocket server for Artisan on `localhost:8080`
+- BLE connection to the roaster (scans for devices named `MATCHBOX*`), with automatic reconnection and exponential backoff
+- Heater power, fan speed, and PID target control
+- Real-time bean temperature (BT) and environment temperature (ET) readings
+- Periodic keepalive writes so the roaster does not drop an idle connection
 
 ## Requirements
 
-- Python 3.10 or newer
-- Hamid H7 or H7s coffee roaster
-- Bluetooth Low Energy support
-- Supported operating systems: Windows, macOS, Linux
+- Python 3.10 or newer (managed automatically by uv)
+- [uv](https://docs.astral.sh/uv/)
+- A Hamid H7 or H7s roaster and a computer with Bluetooth Low Energy
+- Windows, macOS, or Linux
 
 ## Installation
 
-1. Install Python
+1. Install uv following the [official instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
-   If you don't have Python installed, please download and install a version 3.10 or newer from the official Python website:
-
-   - [Download Python](https://www.python.org/downloads/)
-
-   ##### Verify Python Installation
-
-   After installation, open your terminal or command prompt and run the following command to verify that Python is installed correctly and to check its version:
+2. Clone the repository and install dependencies:
 
    ```bash
-   python --version
-   ```
-
-   You should see output similar to Python 3.10.x (where x is the patch version). If you see an error or a version older than 3.10, please ensure Python was installed correctly or consider reinstalling. On some systems, you might need to use python3 --version instead.
-
-2. Clone the Repository and Install Dependencies
-
-   ```bash
-   # Clone this repository
    git clone https://github.com/your-username/artisan-hamid-h7.git
    cd artisan-hamid-h7
-
-   # Install requirements
-   python -m pip install -r requirements.txt
+   uv sync
    ```
+
+   uv installs a matching Python version and all dependencies into `.venv` automatically.
 
 ## Usage
 
-### Starting the Server
-
-Start the WebSocket server that Artisan connects to:
+Start the bridge:
 
 ```bash
-python main.py
+uv run main.py
 ```
 
-The server will:
+The bridge then:
 
-1. Start a WebSocket server on `localhost:8080`
-2. Scan for BLE devices starting with "MATCHBOX"
-3. Automatically connect and maintain the connection
-4. Begin streaming temperature data to connected clients
+1. Starts a WebSocket server on `localhost:8080`
+2. Scans for BLE devices whose name starts with `MATCHBOX`
+3. Connects, maintains the connection, and reconnects if it drops
+4. Streams temperature data to connected clients
 
-### Logging Levels
+### Logging
 
-Control the verbosity of logging with the `--log-level` option:
-
-Available logging levels:
-
-- `debug`: Detailed information for debugging (includes BLE communication details)
-- `info`: General information about the program's operation
-- `warning`: Indications of potential issues (default)
-- `error`: Errors that occurred during execution
-- `critical`: Serious errors that may prevent the program from continuing
-- `none`: No logging output
+Control verbosity with `--log-level` (default: `warning`):
 
 ```bash
-python main.py --log-level debug
+uv run main.py --log-level debug
 ```
+
+Levels: `debug`, `info`, `warning`, `error`, `critical`, `none`.
 
 ## Connecting Artisan
 
-0. Follow the [Artisan setup guide](artisan/README.md) to set up Artisan for Hamis H7/H7s.
-1. Start this application: `python main.py`
-2. Wait for "WebSocket server started on localhost:8080" message
-3. Ensure your Hamid H7 device is powered on and Bluetooth is enabled
-4. Open Artisan
+1. Follow the [Artisan setup guide](artisan/README.md) to configure Artisan for the Hamid H7/H7s.
+2. Start the bridge: `uv run main.py`
+3. Ensure the roaster is powered on and Bluetooth is enabled on your computer.
+4. Open Artisan and start monitoring.
 
-## Supported Commands
+## WebSocket commands
 
-The WebSocket server accepts the following commands:
+| Command | Value | Description |
+| --- | --- | --- |
+| `getData` | – | Current BT/ET readings, heater, and fan values |
+| `fanUp` / `fanDown` | – | Step fan speed up or down |
+| `setFan` | 0–100 | Set fan speed |
+| `heaterUp` / `heaterDown` | – | Step heater power up or down |
+| `setHeater` | 0–100 | Set heater power |
+| `pidOn` / `pidOff` | – | Enable or disable PID temperature control |
+| `setPID` | °C | Set the PID target temperature |
 
-### Data Commands
+Control commands are accepted immediately (`status: accepted`) and executed asynchronously; writes to the roaster are rate-limited, and a newer command of the same kind supersedes a pending one.
 
-- `getData`: Returns current temperature readings and machine status
+## Development
 
-### Fan Control
+Type checking and linting:
 
-- `fanUp`: Increase fan speed
-- `fanDown`: Decrease fan speed
-- `setFan`: Set fan to specific value (0-100)
+```bash
+uv run pyrefly check   # type check
+uv run ruff check .    # lint
+uv run ruff format .   # format
+```
 
-### Heater Control
-
-- `heaterUp`: Increase heater power
-- `heaterDown`: Decrease heater power
-- `setHeater`: Set heater to specific value (0-100)
-
-### PID Control
-
-- `pidOn`: Enable PID temperature control
-- `pidOff`: Disable PID temperature control
-- `setPID`: Set PID target temperature
+Both tools are configured in [`pyproject.toml`](pyproject.toml) and installed by `uv sync` as dev dependencies.
 
 ## Troubleshooting
 
-### Common Issues
-
 **Device not found**
 
-- Ensure your Bluetooth is turned on
-- Make sure the Hamid H7 device is powered on and nearby
-- Verify the device name starts with "MATCHBOX"
+- Ensure Bluetooth is turned on and the roaster is powered on and nearby.
+- Verify the device name starts with `MATCHBOX`.
 
 **Connection drops frequently**
 
-- Check Bluetooth signal strength
-- Ensure no other applications are connecting to the device
-- Try restarting the application with debug logging: `python main.py --log-level debug`
+- Check Bluetooth signal strength.
+- Ensure no other application is connected to the roaster.
+- Restart with debug logging: `uv run main.py --log-level debug`
 
 **Commands not working**
 
-- Verify the BLE client status shows "Connected"
-- Check logs for command execution errors
-- Commands are rate-limited to prevent overwhelming the device
-
-### Debug Mode
-
-For troubleshooting, run with debug logging to see detailed information:
-
-```bash
-python main.py --log-level debug
-```
-
-This will show:
-
-- BLE scanning and connection details
-- WebSocket client connections/disconnections
-- Command execution status
-- Temperature data updates
-- Heartbeat messages
+- Verify the BLE status shows `Connected` (included in every data broadcast).
+- Check the logs for command execution errors.
+- Commands are rate-limited to avoid overwhelming the roaster; rapid changes are coalesced.
 
 ## Architecture
 
-- [`main.py`](main.py): Application entry point
-- [`src/websocket_server.py`](src/websocket_server.py): WebSocket server handling Artisan communication
-- [`src/ble_client.py`](src/ble_client.py): BLE connection management and device scanning
-- [`src/machine.py`](src/machine.py): Machine control commands and data parsing
-- [`src/command_handler.py`](src/command_handler.py): WebSocket command processing
-- [`src/utils.py`](src/utils.py): Utility functions for data conversion
+- [`main.py`](main.py) — entry point: argument parsing, logging setup, task lifecycle
+- [`src/websocket_server.py`](src/websocket_server.py) — WebSocket server handling Artisan communication
+- [`src/command_handler.py`](src/command_handler.py) — maps WebSocket commands to machine operations, fire-and-forget scheduling
+- [`src/ble_client.py`](src/ble_client.py) — BLE scanning, connection lifecycle, reconnection, heartbeat
+- [`src/machine.py`](src/machine.py) — H7 serial protocol: command encoding, telemetry decoding, write pacing
 
 ## License
 
