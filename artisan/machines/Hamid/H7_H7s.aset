@@ -20,21 +20,21 @@ Controlbuttonflag=true
 PIDbuttonflag=true
 
 [ExtraDev]
-extraCurveVisibility1=true
-extraCurveVisibility2=true
-extraDelta1=false
-extraDelta2=false
-extraFill1=0
-extraFill2=0
-extraLCDvisibility1=true
-extraLCDvisibility2=true
-extradevicecolor1=#14539f
-extradevicecolor2=#aa0000
-extradevices=112
-extramathexpression1=
-extramathexpression2=
-extraname1=fan
-extraname2=heater
+extraCurveVisibility1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x1\x1)
+extraCurveVisibility2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x1\x1)
+extraDelta1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x1\0)
+extraDelta2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x1\0)
+extraFill1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x2\0\0\0\0)
+extraFill2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x2\0\0\0\0)
+extraLCDvisibility1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x1\x1)
+extraLCDvisibility2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x1\x1)
+extradevicecolor1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0\xe\0#\0\x37\0\x66\0\x61\0\x38\0\x63\0\x39)
+extradevicecolor2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0\xe\0#\0\x65\0\x30\0\x33\0\x61\0\x32\0\x66)
+extradevices=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\x2\0\0\0p)
+extramathexpression1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0\0)
+extramathexpression2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0\0)
+extraname1=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0\x6\0\x66\0\x61\0n)
+extraname2=@Variant(\0\0\0\t\0\0\0\x1\0\0\0\n\0\0\0\f\0h\0\x65\0\x61\0t\0\x65\0r)
 
 [ExtraEventButtons]
 buttonlistmaxlen=14
