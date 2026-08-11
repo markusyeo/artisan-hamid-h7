@@ -21,6 +21,9 @@ MAX_RECONNECTION_ATTEMPTS = 5
 BASE_RECONNECTION_DELAY_SECONDS = 5.0
 HEARTBEAT_CHECK_INTERVAL_SECONDS = 15.0
 HEARTBEAT_IDLE_THRESHOLD_SECONDS = 20.0
+# The roaster streams telemetry about once per second; a long silence means the
+# link is dead even if the OS still reports the client as connected.
+TELEMETRY_STALE_SECONDS = 30.0
 
 
 class BLEClient:
@@ -117,6 +120,7 @@ class BLEClient:
                             self.connection_event.set()
                             continue
 
+                        self.machine.last_telemetry_time = time.time()
                         self._heartbeat_task = asyncio.create_task(self._send_heartbeat())
                         await self.connection_event.wait()
 
@@ -165,6 +169,12 @@ class BLEClient:
         try:
             while self.client is not None and self.client.is_connected:
                 await asyncio.sleep(HEARTBEAT_CHECK_INTERVAL_SECONDS)
+
+                telemetry_silence = time.time() - self.machine.last_telemetry_time
+                if telemetry_silence > TELEMETRY_STALE_SECONDS:
+                    logger.warning(f"No telemetry for {telemetry_silence:.0f}s; forcing reconnect.")
+                    self.connection_event.set()
+                    return
 
                 idle_time = time.time() - self.machine.last_command_time
                 if (

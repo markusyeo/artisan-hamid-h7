@@ -13,11 +13,17 @@ dependencies = [
 dev = [
     "pre-commit>=4.0",
     "pyrefly>=0.22.1",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
     "ruff>=0.12",
 ]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
 [tool.pyrefly]
-project-includes = ["main.py", "src"]
+project-includes = ["main.py", "src", "tests"]
 search-path = ["."]
 
 [tool.ruff]

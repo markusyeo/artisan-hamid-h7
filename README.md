@@ -75,7 +75,7 @@ Levels: `debug`, `info`, `warning`, `error`, `critical`, `none`.
 | `pidOn` / `pidOff` | – | Enable or disable PID temperature control |
 | `setPID` | °C | Set the PID target temperature |
 
-Control commands are accepted immediately (`status: accepted`) and executed asynchronously; writes to the roaster are rate-limited, and a newer command of the same kind supersedes a pending one.
+Control commands are accepted immediately (`status: accepted`) and executed asynchronously; writes to the roaster are rate-limited, and a newer command of the same kind supersedes a pending one. Values outside the valid range are rejected up front. `setFan` and `setHeater` are additionally verified against the telemetry echo and retried once if the roaster does not report the new value; unconfirmed commands are logged as errors.
 
 ## Development
 
@@ -85,6 +85,7 @@ Type checking and linting:
 uv run pyrefly check   # type check
 uv run ruff check .    # lint
 uv run ruff format .   # format
+uv run pytest          # tests
 ```
 
 Both tools are configured in [`pyproject.toml`](pyproject.toml) and installed by `uv sync` as dev dependencies.
@@ -95,7 +96,7 @@ To run all of them automatically before every commit, install the git hook once:
 uv run pre-commit install
 ```
 
-The hook (configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) blocks any commit that fails linting, formatting, or type checking. Run it manually with `uv run pre-commit run --all-files`.
+The hook (configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) blocks any commit that fails linting, formatting, type checking, or the test suite. Run it manually with `uv run pre-commit run --all-files`.
 
 ## Troubleshooting
 

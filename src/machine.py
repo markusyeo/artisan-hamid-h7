@@ -9,10 +9,10 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 
 logger = logging.getLogger(__name__)
 
-# The roaster cannot absorb back-to-back BLE writes; every command is paced
-# through one lock with a minimum gap before the write and a cool-down after it.
-MIN_COMMAND_GAP_SECONDS = 0.1
-POST_WRITE_COOLDOWN_SECONDS = 1.0
+# The roaster cannot absorb back-to-back BLE writes. Pacing is derived from the
+# timestamp of the previous write rather than a sleep held across the lock, so a
+# command cancelled mid-flight can never let its successor fire early.
+WRITE_INTERVAL_SECONDS = 1.0
 
 
 class SerialCommands:
@@ -36,6 +36,7 @@ class Machine:
         self.heater_value: int = 0
         self.fan_value: int = 0
         self.last_command_time: float = 0.0
+        self.last_telemetry_time: float = 0.0
         self.command_lock = asyncio.Lock()
 
     async def discover_characteristics(self, client: BleakClient) -> bool:
@@ -84,6 +85,7 @@ class Machine:
             self.environment_temperature = float(environment_temp_str)
             self.heater_value = int(heater_value_str)
             self.fan_value = int(fan_value_str)
+            self.last_telemetry_time = time.time()
             return True
         except Exception as e:
             logger.error(f"Error decoding message: {e}, Data: {data!r}")
@@ -95,19 +97,20 @@ class Machine:
             return False
         async with self.command_lock:
             try:
-                time_since_last_command = time.time() - self.last_command_time
-                if time_since_last_command < MIN_COMMAND_GAP_SECONDS:
-                    await asyncio.sleep(MIN_COMMAND_GAP_SECONDS - time_since_last_command)
+                wait = self.last_command_time + WRITE_INTERVAL_SECONDS - time.time()
+                if wait > 0:
+                    await asyncio.sleep(wait)
 
                 command_bytes = bytearray((command + "\n").encode("ascii"))
                 if not client.is_connected:
                     logger.error("Cannot send command: BLE client is disconnected")
                     return False
+                # Stamped before the write: a write cancelled mid-flight may still
+                # have reached the device, so the next one must wait either way.
+                self.last_command_time = time.time()
                 await client.write_gatt_char(
                     self.write_characteristic_uuid, command_bytes, response=True
                 )
-                self.last_command_time = time.time()
-                await asyncio.sleep(POST_WRITE_COOLDOWN_SECONDS)
                 return True
             except Exception as e:
                 logger.error(f"Error sending command: {e}")
