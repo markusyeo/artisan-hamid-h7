@@ -58,6 +58,12 @@ To modify the reference curve for your roasting preferences, see [CURVE_EDIT.md]
 - Ensure the main WebSocket server is running before starting monitoring in Artisan
 - The background curve serves as a visual reference - you can roast without it if preferred
 
+## Native BLE support in Artisan (no bridge needed)
+
+Our Artisan fork (branch `hamid-h7-machine` at <https://github.com/markusyeo/artisan>) also contains a **native BLE driver** (`src/artisanlib/hamid.py`, devices 208/209) that lets Artisan connect to the roaster directly — no bridge process required. It appears as **Config → Machines → Hamid → H7 H7s Bluetooth** and speaks the same TC4-style serial commands (`IO3,n` / `OT1,n` / `PID,SV,n`) this bridge sends, including telemetry parsing, 1 s write pacing, command supersede, and idle keepalive.
+
+One caveat: the driver does not yet know the H7's exact GATT service UUID (this bridge auto-discovers characteristics at runtime). It currently tries the common BLE-UART service UUIDs in rotation. To pin the real ones, run `uv run scripts/scan_ble_uuids.py` with the roaster on and the bridge stopped, then set `CANDIDATE_SERVICE_UUIDS` in `hamid.py` accordingly before opening the upstream PR.
+
 ## Artisan machine setup (built-in menu entry)
 
 Artisan ships per-roaster "machine setups" as trimmed `.aset` files under `src/includes/Machines/<Manufacturer>/<Model>.aset` in the [Artisan repository](https://github.com/artisan-roaster-scope/artisan) — that is what powers the **Config → Machines** menu. No Python driver is needed for the H7/H7s because the bridge already speaks Artisan's generic WebSocket protocol (device id 111).
