@@ -120,6 +120,20 @@ async def test_newer_command_supersedes_pending_one() -> None:
     assert fake.calls == [("set_fan", 50)]
 
 
+async def test_new_command_cancels_confirmation_wait(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(command_handler, "CONFIRMATION_TIMEOUT_SECONDS", 10.0)
+    handler, fake = make_handler(echo=False)
+    await handler.process_command("setFan", 40)
+    await asyncio.sleep(0.05)
+    assert fake.calls == [("set_fan", 40)]
+
+    await handler.process_command("setFan", 50)
+    assert len(handler._pending_commands) == 1
+    fake.echo = True
+    await drain(handler)
+    assert fake.calls == [("set_fan", 40), ("set_fan", 50)]
+
+
 async def test_cleanup_cancels_pending_commands() -> None:
     handler, fake = make_handler()
     fake.send_delay = 1.0
