@@ -58,6 +58,18 @@ To modify the reference curve for your roasting preferences, see [CURVE_EDIT.md]
 - Ensure the main WebSocket server is running before starting monitoring in Artisan
 - The background curve serves as a visual reference - you can roast without it if preferred
 
+## Artisan machine setup (built-in menu entry)
+
+Artisan ships per-roaster "machine setups" as trimmed `.aset` files under `src/includes/Machines/<Manufacturer>/<Model>.aset` in the [Artisan repository](https://github.com/artisan-roaster-scope/artisan) — that is what powers the **Config → Machines** menu. No Python driver is needed for the H7/H7s because the bridge already speaks Artisan's generic WebSocket protocol (device id 111).
+
+A trimmed machine file for this bridge lives in this repo at [`machines/Hamid/H7_H7s.aset`](machines/Hamid/H7_H7s.aset). It is the same configuration as `hamid-h7 (no fan).aset` reduced to only the machine-relevant groups (`Device`, `WebSocket`, buttons, sliders, quantifiers), so loading it does not overwrite personal display/color preferences.
+
+The same file is staged for upstream contribution in our Artisan fork:
+
+- Fork: <https://github.com/markusyeo/artisan>, branch `hamid-h7-machine`, file `src/includes/Machines/Hamid/H7_H7s.aset`
+- Once merged upstream, users would select **Config → Machines → Hamid → H7 H7s** in Artisan (which then prompts for the bridge host) instead of loading the `.aset` manually.
+- To update the fork after changing `machines/Hamid/H7_H7s.aset` here, copy the file over and open a PR against `artisan-roaster-scope/artisan` following their `CONTRIBUTING.md` (issue → branch → PR).
+
 ## Troubleshooting
 
 If you encounter issues:

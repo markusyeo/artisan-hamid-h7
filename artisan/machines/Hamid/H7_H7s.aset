@@ -1,0 +1,110 @@
+[General]
+Delay=1000
+ExtraEventSamplingDelay=1000
+Oversampling=false
+roastertype_setup=Hamid H7/H7s
+roastersize_setup_default=0.3
+
+[DefaultButtons]
+buttonactions=21, 0, 0, 0, 0, 0, 21, 21
+buttonactionstrings=send({\"command\": \"pidOn\"}), , , , , , "send({ \"command\": \"pidOff\" });", "send({\"command\": \"setFan\", \"value\": 100})"
+buttonvisibility=true, true, true, false, false, false, true, true
+extrabuttonactions=0, 0, 21
+extrabuttonactionstrings=, , "send({\"command\": \"setPID\", \"value\": {BTB} })"
+xextrabuttonactions=0, 0
+xextrabuttonactionstrings=,
+
+[Device]
+id=111
+Controlbuttonflag=true
+PIDbuttonflag=true
+
+[ExtraDev]
+extraCurveVisibility1=true
+extraCurveVisibility2=true
+extraDelta1=false
+extraDelta2=false
+extraFill1=0
+extraFill2=0
+extraLCDvisibility1=true
+extraLCDvisibility2=true
+extradevicecolor1=#14539f
+extradevicecolor2=#aa0000
+extradevices=112
+extramathexpression1=
+extramathexpression2=
+extraname1=fan
+extraname2=heater
+
+[ExtraEventButtons]
+buttonlistmaxlen=14
+buttonsize=2
+extraeventbuttoncolor=#355280, #355280, #355280, #355280, #d8eafe, #a6d4fb, #7fc2f5, #4aa6ed, #078ee6, #058ee5, #057fd9, #016ac1, #0061b7, #00469a, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe, #d8eafe
+extraeventbuttontextcolor=white, white, white, white, black, black, black, black, black, white, white, white, white, white, black, black, black, black, black, black, black, black, black, black, black, black, black, black
+extraeventsactions=22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22
+extraeventsactionstrings=send({{\"command\": \"fanDown\"}}), send({{\"command\": \"fanUp\"}}), "send({{\"command\": \"fanStep\", \"value\": -1}})", "send({{\"command\": \"fanStep\", \"value\": 1}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"heaterDown\", \"value\": {}}})", "send({{\"command\": \"heaterUp\", \"value\": {}}})", "send({{\"command\": \"heaterStep\", \"value\": -1}})", "send({{\"command\": \"heaterStep\", \"value\": 1}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})"
+extraeventsbuttonsflags=0, 1, 1
+extraeventsdescriptions=, , , , , , , , , , , , , , , , , , , , , , , , , , ,
+extraeventslabels=Fan -, Fan +, Fan -1, Fan +1, Fan 0, Fan 25, Fan 30, Fan 40, Fan 50, Fan 60, Fan 70, Fan 80, Fan 90, Fan 100, Heat -, Heat +, Heat -1, Heat +1, Heat 0, Heat 25, Heat 30, Heat 40, Heat 50, Heat 60, Heat 70, Heat 80, Heat 90, Heat 100
+extraeventstypes=5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+extraeventsvalues=-1.2, 1.2, -1.1, 1.1, 0, 3.5, 4, 5, 6, 7, 8, 9, 10, 11, -1.2, 1.2, -1.1, 1.1, 0, 3.5, 4, 5, 6, 7, 8, 9, 10, 11
+extraeventsvisibility=1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+marklastbuttonpressed=false
+showextrabuttontooltips=false
+
+[Quantifiers]
+clusterEventsFlag=true
+eventquantifierSV=0, 0, 0, 0
+eventquantifieraction=1, 1, 0, 0
+quantifieractive=1, 1, 0, 0
+quantifiercoarse=0, 0, 0, 0
+quantifiermax=100, 100, 100, 100
+quantifiermin=0, 0, 0, 0
+quantifiersource=2, 3, 0, 0
+
+[Sliders]
+ModeTempSliders=C
+eventsliderAlternativeLayout=false
+eventsliderBernoulli=0, 0, 0, 0
+eventsliderKeyboardControl=true
+eventslidercoarse=0, 0, 0, 0
+eventslidersflags=1, 1, 1
+eventslidertemp=0, 0, 0, 0
+eventsliderunits=, , ,
+slideractions=18, 18, 0, 0
+slidercommands="send({{\"command\": \"setFan\", \"value\": {}}})", "send({{\"command\": \"setHeater\", \"value\": {}}})", ,
+sliderfactors=1, 1, 1, 1
+slidermax=100, 100, 100, 100
+slidermin=0, 0, 0, 0
+slideroffsets=0, 0, 0, 0
+slidervisibilities=1, 1, 0, 0
+
+[WebSocket]
+DRY_node=colorChangeEvent
+FCe_node=firstCrackEndEvent
+FCs_node=firstCrackBeginningEvent
+OFFonDROP=false
+SCe_node=secondCrackEndEvent
+SCs_node=secondCrackBeginningEvent
+STARTonCHARGE=true
+addEvent_message=addEvent
+channel_modes=1, 1, 0, 0, 0, 0, 0, 0, 0, 0
+channel_nodes=BT, ET, fan, heater, , , , , ,
+channel_requests=, , , , , , , , ,
+charge_message=startRoasting
+command_node=command
+compression=true
+connect_timeout=4
+data_node=data
+drop_message=endRoasting
+event_node=event
+host=127.0.0.1
+id_node=id
+machineID=0
+machine_node=roasterID
+path=WebSocket
+port=8080
+pushMessage_node=pushMessage
+reconnect_interval=0.2
+request_data_command=getData
+request_timeout=1
