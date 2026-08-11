@@ -53,6 +53,7 @@ To modify the reference curve for your roasting preferences, see [CURVE_EDIT.md]
 
 ## Notes
 
+- The settings include **Fan -1 / Fan +1** and **Heat -1 / Heat +1** buttons for single-percent steps (the plain **-** / **+** buttons use the roaster's built-in, coarser step). These send the bridge's `fanStep`/`heaterStep` commands and require the current bridge version.
 - The current configuration is set up for **no fan control** - only heater control is available
 - Ensure the main WebSocket server is running before starting monitoring in Artisan
 - The background curve serves as a visual reference - you can roast without it if preferred
