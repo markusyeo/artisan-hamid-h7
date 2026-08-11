@@ -30,7 +30,7 @@ After loading the settings, you should see the Hamid H7 configuration applied to
 
 ### Step 4: Start Monitoring
 
-1. Ensure the WebSocket server is running (`python main.py` from the main directory)
+1. Ensure the WebSocket server is running (`uv run main.py` from the main directory)
 2. Click the **ON** button or press **Space** to start monitoring
 3. Artisan will connect to your Hamid H7 device through the WebSocket bridge
 

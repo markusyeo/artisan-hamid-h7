@@ -89,6 +89,14 @@ uv run ruff format .   # format
 
 Both tools are configured in [`pyproject.toml`](pyproject.toml) and installed by `uv sync` as dev dependencies.
 
+To run all of them automatically before every commit, install the git hook once:
+
+```bash
+uv run pre-commit install
+```
+
+The hook (configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) blocks any commit that fails linting, formatting, or type checking. Run it manually with `uv run pre-commit run --all-files`.
+
 ## Troubleshooting
 
 **Device not found**
