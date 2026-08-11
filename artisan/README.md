@@ -60,21 +60,11 @@ To modify the reference curve for your roasting preferences, see [CURVE_EDIT.md]
 
 ## Native BLE support in Artisan (no bridge needed)
 
-Our Artisan fork (branch `hamid-h7-machine` at <https://github.com/markusyeo/artisan>) also contains a **native BLE driver** (`src/artisanlib/hamid.py`, devices 208/209) that lets Artisan connect to the roaster directly — no bridge process required. It appears as **Config → Machines → Hamid → H7 H7s Bluetooth** and speaks the same TC4-style serial commands (`IO3,n` / `OT1,n` / `PID,SV,n`) this bridge sends, including telemetry parsing, 1 s write pacing, command supersede, and idle keepalive.
+Our Artisan fork (branch `hamid-h7-machine` at <https://github.com/markusyeo/artisan>) contains a **native BLE driver** (`src/artisanlib/hamid.py`, devices 208/209) that lets Artisan connect to the roaster directly — no bridge process required. It appears as **Config → Machines → Hamid H7 H7s Bluetooth** (backed by `src/includes/Machines/Hamid/H7_H7s_Bluetooth.aset`) and speaks the same TC4-style serial commands (`IO3,n` / `OT1,n` / `PID,SV,n`) this bridge sends, including telemetry parsing, 1 s write pacing, command supersede, and idle keepalive.
 
-One caveat: the driver does not yet know the H7's exact GATT service UUID (this bridge auto-discovers characteristics at runtime). It currently tries the common BLE-UART service UUIDs in rotation. To pin the real ones, run `uv run scripts/scan_ble_uuids.py` with the roaster on and the bridge stopped, then set `CANDIDATE_SERVICE_UUIDS` in `hamid.py` accordingly before opening the upstream PR.
+One caveat: the driver does not yet know the H7's exact GATT service UUID (this bridge auto-discovers characteristics at runtime). It currently tries the common BLE-UART service UUIDs in rotation. To pin the real ones, run `uv run scripts/scan_ble_uuids.py` with the roaster on and the bridge stopped, then set `CANDIDATE_SERVICE_UUIDS` in `hamid.py` accordingly before opening the upstream PR against `artisan-roaster-scope/artisan` (standard `CONTRIBUTING.md` flow: issue → branch → PR).
 
-## Artisan machine setup (built-in menu entry)
-
-Artisan ships per-roaster "machine setups" as trimmed `.aset` files under `src/includes/Machines/<Manufacturer>/<Model>.aset` in the [Artisan repository](https://github.com/artisan-roaster-scope/artisan) — that is what powers the **Config → Machines** menu. No Python driver is needed for the H7/H7s because the bridge already speaks Artisan's generic WebSocket protocol (device id 111).
-
-A trimmed machine file for this bridge lives in this repo at [`machines/Hamid/H7_H7s.aset`](machines/Hamid/H7_H7s.aset). It is the same configuration as `hamid-h7 (no fan).aset` reduced to only the machine-relevant groups (`Device`, `WebSocket`, buttons, sliders, quantifiers), so loading it does not overwrite personal display/color preferences.
-
-The same file is staged for upstream contribution in our Artisan fork:
-
-- Fork: <https://github.com/markusyeo/artisan>, branch `hamid-h7-machine`, file `src/includes/Machines/Hamid/H7_H7s.aset`
-- Once merged upstream, users would select **Config → Machines → Hamid → H7 H7s** in Artisan (which then prompts for the bridge host) instead of loading the `.aset` manually.
-- To update the fork after changing `machines/Hamid/H7_H7s.aset` here, copy the file over and open a PR against `artisan-roaster-scope/artisan` following their `CONTRIBUTING.md` (issue → branch → PR).
+For users of this WebSocket bridge, a trimmed machine file (not part of the fork) lives in this repo at [`machines/Hamid/H7_H7s.aset`](machines/Hamid/H7_H7s.aset). It is the same configuration as `hamid-h7 (no fan).aset` reduced to only the machine-relevant groups, so loading it via **Help → Load Settings** does not overwrite personal display/color preferences.
 
 ## Troubleshooting
 
