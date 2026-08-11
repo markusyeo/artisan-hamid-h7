@@ -29,6 +29,14 @@ CONFIRMABLE_COMMANDS: dict[str, str] = {
     "setFan": "fan_value",
     "setHeater": "heater_value",
 }
+
+# Relative steps of any size (Artisan's built-in +/- buttons are hard-wired to
+# the device's own fanUp/heaterUp increments). Each step resolves to an
+# absolute set so it flows through the confirmation pipeline.
+STEP_COMMANDS: dict[str, str] = {
+    "fanStep": "setFan",
+    "heaterStep": "setHeater",
+}
 CONFIRMATION_TIMEOUT_SECONDS = 5.0
 CONFIRMATION_POLL_SECONDS = 0.25
 MAX_SEND_ATTEMPTS = 2
@@ -38,6 +46,7 @@ class CommandHandler:
     def __init__(self, ble_client: BLEClient) -> None:
         self.ble_client = ble_client
         self._pending_commands: dict[str, asyncio.Task[None]] = {}
+        self._pending_targets: dict[str, tuple[str, int]] = {}
 
     async def process_command(self, command: str, value: Any = None) -> dict[str, Any]:
         if command == "getData":
@@ -76,6 +85,31 @@ class CommandHandler:
             self._schedule(command, method_name, converted_value)
             return {"status": "accepted"}
 
+        if command in STEP_COMMANDS:
+            if value is None:
+                return {"status": "error", "message": f"Command '{command}' requires a value"}
+            try:
+                delta = int(value)
+            except (ValueError, TypeError) as e:
+                return {"status": "error", "message": f"Invalid step value: {e}"}
+            if delta == 0:
+                return {"status": "error", "message": "Step value must be non-zero"}
+
+            set_command = STEP_COMMANDS[command]
+            method_name = VALUE_COMMANDS[set_command][0]
+            # Base the step on the target of an in-flight set (telemetry lags
+            # ~1s, so rapid presses would otherwise all step from the same
+            # stale value); fall back to the telemetry echo when idle.
+            pending = self._pending_targets.get(set_command)
+            base = (
+                pending[1]
+                if pending
+                else getattr(self.ble_client, CONFIRMABLE_COMMANDS[set_command])
+            )
+            target = max(0, min(100, base + delta))
+            self._schedule(set_command, method_name, target)
+            return {"status": "accepted", "target": target}
+
         if command in SIMPLE_COMMANDS:
             self._schedule(command, SIMPLE_COMMANDS[command])
             return {
@@ -96,6 +130,8 @@ class CommandHandler:
             del self._pending_commands[tid]
 
         task_id = f"{command}_{asyncio.get_running_loop().time()}"
+        if command in CONFIRMABLE_COMMANDS:
+            self._pending_targets[command] = (task_id, int(args[0]))
         self._pending_commands[task_id] = asyncio.create_task(
             self._execute_command_async(task_id, command, method_name, *args)
         )
@@ -127,6 +163,11 @@ class CommandHandler:
             logger.error(f"Error executing async command {method_name}: {e}")
         finally:
             self._pending_commands.pop(task_id, None)
+            # Only the task that recorded the target may clear it: a superseded
+            # task's cleanup runs after its successor has already claimed the slot.
+            pending = self._pending_targets.get(command)
+            if pending and pending[0] == task_id:
+                del self._pending_targets[command]
 
     async def _await_confirmation(self, telemetry_attr: str, expected: float) -> bool:
         loop = asyncio.get_running_loop()

@@ -134,6 +134,69 @@ async def test_new_command_cancels_confirmation_wait(monkeypatch: pytest.MonkeyP
     assert fake.calls == [("set_fan", 40), ("set_fan", 50)]
 
 
+async def test_step_command_resolves_to_absolute_set() -> None:
+    handler, fake = make_handler()
+    fake.fan_value = 40
+    response = await handler.process_command("fanStep", 5)
+    assert response == {"status": "accepted", "target": 45}
+    await drain(handler)
+    assert fake.calls == [("set_fan", 45)]
+
+
+async def test_step_command_clamps_to_range() -> None:
+    handler, fake = make_handler()
+    fake.heater_value = 98
+    response = await handler.process_command("heaterStep", 5)
+    assert response["target"] == 100
+    fake.fan_value = 2
+    response = await handler.process_command("fanStep", -5)
+    assert response["target"] == 0
+
+
+async def test_step_command_validation() -> None:
+    handler, fake = make_handler()
+    assert (await handler.process_command("fanStep"))["status"] == "error"
+    assert (await handler.process_command("fanStep", 0))["status"] == "error"
+    assert (await handler.process_command("fanStep", "abc"))["status"] == "error"
+    assert fake.calls == []
+
+
+async def test_rapid_steps_accumulate_despite_telemetry_lag() -> None:
+    handler, fake = make_handler(echo=False)
+    fake.fan_value = 40
+    fake.send_delay = 0.05
+    r1 = await handler.process_command("fanStep", 1)
+    r2 = await handler.process_command("fanStep", 1)
+    r3 = await handler.process_command("fanStep", 1)
+    assert (r1["target"], r2["target"], r3["target"]) == (41, 42, 43)
+    fake.echo = True
+    await drain(handler)
+    assert fake.calls[-1] == ("set_fan", 43)
+
+
+async def test_step_bases_on_pending_slider_target() -> None:
+    handler, fake = make_handler(echo=False)
+    fake.fan_value = 10
+    fake.send_delay = 0.05
+    await handler.process_command("setFan", 60)
+    response = await handler.process_command("fanStep", -5)
+    assert response["target"] == 55
+    fake.echo = True
+    await drain(handler)
+    assert fake.calls[-1] == ("set_fan", 55)
+
+
+async def test_step_falls_back_to_telemetry_when_idle() -> None:
+    handler, fake = make_handler()
+    fake.fan_value = 40
+    await handler.process_command("setFan", 60)
+    await drain(handler)
+    assert handler._pending_targets == {}
+    fake.fan_value = 60
+    response = await handler.process_command("fanStep", 1)
+    assert response["target"] == 61
+
+
 async def test_cleanup_cancels_pending_commands() -> None:
     handler, fake = make_handler()
     fake.send_delay = 1.0

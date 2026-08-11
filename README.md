@@ -68,14 +68,18 @@ Levels: `debug`, `info`, `warning`, `error`, `critical`, `none`.
 | Command | Value | Description |
 | --- | --- | --- |
 | `getData` | – | Current BT/ET readings, heater, and fan values |
-| `fanUp` / `fanDown` | – | Step fan speed up or down |
+| `fanUp` / `fanDown` | – | Step fan speed up or down (device's built-in step) |
 | `setFan` | 0–100 | Set fan speed |
-| `heaterUp` / `heaterDown` | – | Step heater power up or down |
+| `fanStep` | signed delta | Step fan speed by a custom amount, clamped to 0–100 |
+| `heaterUp` / `heaterDown` | – | Step heater power up or down (device's built-in step) |
 | `setHeater` | 0–100 | Set heater power |
+| `heaterStep` | signed delta | Step heater power by a custom amount, clamped to 0–100 |
 | `pidOn` / `pidOff` | – | Enable or disable PID temperature control |
 | `setPID` | °C | Set the PID target temperature |
 
 Control commands are accepted immediately (`status: accepted`) and executed asynchronously; writes to the roaster are rate-limited, and a newer command of the same kind supersedes a pending one. Values outside the valid range are rejected up front. `setFan` and `setHeater` are additionally verified against the telemetry echo and retried once if the roaster does not report the new value; unconfirmed commands are logged as errors.
+
+`fanStep` and `heaterStep` exist for custom Artisan event buttons with a finer (or coarser) step than the device's built-in `fanUp`/`fanDown`, e.g. `{"command": "fanStep", "value": -2}`. A step resolves to an absolute set relative to the latest pending target rather than the (lagging) telemetry value, so rapid presses accumulate correctly, and the response reports the resolved target, e.g. `{"status": "accepted", "target": 43}`.
 
 ## Development
 
