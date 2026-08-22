@@ -2,10 +2,10 @@
 
 Connects to the first BLE device whose name starts with MATCHBOX and prints
 its advertised services and every characteristic with its properties. Used to
-pin the exact service/characteristic UUIDs in Artisan's native Hamid driver
-(artisanlib/hamid.py), which otherwise has to try candidate UART services.
+identify the exact service and characteristic UUIDs in the native Artisan Hamid
+driver (artisanlib.hamid), which otherwise must test candidate UART services.
 
-Run with the roaster powered on and the bridge stopped:
+To inspect the GATT table, power on the roaster, stop the bridge, and run:
 
     uv run scripts/scan_ble_uuids.py
 """

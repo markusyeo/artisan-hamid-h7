@@ -22,17 +22,17 @@ VALUE_COMMANDS: dict[str, tuple[str, Callable[[Any], float], Callable[[float], b
     "setPID": ("set_pid", float, lambda v: v > 0),
 }
 
-# Telemetry echoes the heater and fan values the machine is actually using, so
-# these commands can be verified against it. The PID target is not echoed and
-# the up/down steps have no absolute target, so neither is confirmable.
+# Telemetry echoes heater and fan values in use by the machine so
+# these commands can be verified. The PID target is not echoed and
+# directional step commands have no absolute target so neither is confirmable.
 CONFIRMABLE_COMMANDS: dict[str, str] = {
     "setFan": "fan_value",
     "setHeater": "heater_value",
 }
 
-# Relative steps of any size (Artisan's built-in +/- buttons are hard-wired to
-# the device's own fanUp/heaterUp increments). Each step resolves to an
-# absolute set so it flows through the confirmation pipeline.
+# Relative steps of any size. Artisan built-in step buttons use fixed
+# increments. Each step resolves to an absolute set command so it
+# flows through the confirmation pipeline.
 STEP_COMMANDS: dict[str, str] = {
     "fanStep": "setFan",
     "heaterStep": "setHeater",
@@ -43,6 +43,8 @@ MAX_SEND_ATTEMPTS = 2
 
 
 class CommandHandler:
+    """Process incoming commands and coordinate execution with the BLE client."""
+
     def __init__(self, ble_client: BLEClient) -> None:
         self.ble_client = ble_client
         self._pending_commands: dict[str, asyncio.Task[None]] = {}
@@ -97,9 +99,9 @@ class CommandHandler:
 
             set_command = STEP_COMMANDS[command]
             method_name = VALUE_COMMANDS[set_command][0]
-            # Base the step on the target of an in-flight set (telemetry lags
-            # ~1s, so rapid presses would otherwise all step from the same
-            # stale value); fall back to the telemetry echo when idle.
+            # Base the step on the target of an in-flight set because telemetry lags
+            # roughly one second. Rapid presses would otherwise step from the same
+            # stale value. Falls back to the telemetry echo when idle.
             pending = self._pending_targets.get(set_command)
             base = (
                 pending[1]
@@ -121,9 +123,7 @@ class CommandHandler:
         return {"status": "error", "message": f"Unknown command: {command}"}
 
     def _schedule(self, command: str, method_name: str, *args: Any) -> None:
-        """Fire-and-forget BLE write. A newer command supersedes any still-pending
-        write of the same kind, since the device paces writes far slower than
-        Artisan emits them."""
+        """Schedule a BLE write command and supersede any pending write of the same type."""
         stale = [tid for tid in self._pending_commands if tid.startswith(f"{command}_")]
         for tid in stale:
             self._pending_commands[tid].cancel()
@@ -163,8 +163,8 @@ class CommandHandler:
             logger.error(f"Error executing async command {method_name}: {e}")
         finally:
             self._pending_commands.pop(task_id, None)
-            # Only the task that recorded the target may clear it: a superseded
-            # task's cleanup runs after its successor has already claimed the slot.
+            # Only the task that recorded the target may clear it. A superseded
+            # task cleanup runs after its successor has already claimed the slot.
             pending = self._pending_targets.get(command)
             if pending and pending[0] == task_id:
                 del self._pending_targets[command]

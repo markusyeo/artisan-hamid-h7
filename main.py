@@ -22,8 +22,9 @@ LOG_LEVELS: dict[str, int] = {
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Artisan bridge for the Hamid H7/H7s coffee roaster"
+        description="Artisan bridge for Hamid H7 and H7s coffee roasters"
     )
     parser.add_argument(
         "--log-level",
@@ -35,6 +36,7 @@ def parse_args() -> argparse.Namespace:
 
 
 async def main() -> None:
+    """Start the WebSocket server and BLE client."""
     args = parse_args()
     logging.basicConfig(
         level=LOG_LEVELS[args.log_level],

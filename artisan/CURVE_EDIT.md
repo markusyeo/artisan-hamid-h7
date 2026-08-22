@@ -1,105 +1,63 @@
-# How to Edit Reference Curves in Artisan
+# Editing reference curves in Artisan
 
-Learn how to customize temperature profiles to match your perfect roast using Artisan's curve editor.
+Edit reference temperature profiles in Artisan to guide roasting sessions.
 
-## What You'll Learn
+## Load a reference curve
 
-- How to open and edit existing curves
-- How to adjust temperature and timing points
-- How to save your custom profiles
+1. In Artisan, select **File** → **Open**.
+2. Select the curve file, such as `Reference Curve (no fan).alog`.
 
----
+![Open curve](images/C1.%20Open%20Curve.png)
 
-## Getting Started
+## Open the curve designer
 
-### Load Your Reference Curve
+Select **Tools** → **Designer** to open the curve editor.
 
-1. **Open Artisan** and go to **File** → **Open**
-2. **Select your curve file** (for this example, use `Reference Curve (no fan).alog`)
+![Open Designer](images/C2.%20Open%20Designer.png)
 
-![Open Curve Editor](images/C1.%20Open%20Curve.png)
+## Configure curve channels
 
-### Enter Design Mode
+1. Right-click the graph and select **Config...**.
+2. Apply the channel mappings for your roaster configuration:
 
-1. **Go to Tools** → **Designer** to open the curve editor
+- **Without fan control.** Adjust the Bean Temperature (BT) curve to match the desired PID target profile.
+- **With fan control.** Use Environmental Temperature (ET) values to represent fan speed percentages (for example, 50 °C ET represents 50 percent fan speed at that timestamp).
 
-![Curve Editor Interface](images/C2.%20Open%20Designer.png)
+![Configure curve](images/C3.%20Open%20Config.png)
 
----
+## Adjust control points
 
-## Editing Your Curve
+The designer displays editable control points (nodes) along the curve:
 
-### Configure Your Settings
+- **Blue line (BT).** Represents the Bean Temperature profile.
+- **Red line (ET).** Represents fan speed percentage when fan control is active.
+- **Vertical adjustments.** Drag control points up or down to modify temperature or fan values.
+- **Timing adjustments.** Drag control points left or right to change when profile adjustments occur.
 
-**Right-click** on the graph and select **Config...**
+![Adjust control points](images/C4.%20Apply%20Curve.png)
 
-![Modify Control Points](images/C3.%20Open%20Config.png)
+## Save the modified curve
 
-**Important Setup Notes:**
+1. Select **Tools** → **Designer** to exit edit mode.
 
-- **No Fan Setup**: Modify the BT (Bean Temperature) values to match your PID curve
-- **With Fan Setup**: Use ET (Environmental Temperature) values as fan percentages
-  - Example: 50°C ET = 50% fan speed at that time point
+![Exit Designer](images/C5.%20Deselect.png)
 
-### Adjust Your Temperature Profile
+2. Save the curve using one of the following methods:
+   - **Overwrite original.** Select **File** → **Save** to replace the loaded curve file.
+   - **Create new profile.** Select **File** → **Save As** and specify a new profile name.
 
-You'll see a graph with **control points (nodes)** that you can move:
+![Save modified curve](images/C6.%20Save%20As.png)
 
-**How to Edit:**
+## Load saved curves during roasting
 
-- **🔵 Blue line (BT)** = Bean Temperature profile
-- **🔴 Red line (ET)** = Fan speed percentage (if using fan)
-- **Drag points up/down** = Change temperature/fan values
-- **Drag points left/right** = Adjust timing
+To display a saved curve as a background reference during roasting:
 
-![Fine-tune Profile](images/C4.%20Apply%20Curve.png)
+1. Select **Roast** → **Background** → **Load**.
+2. Select the target `.alog` file.
+3. Start the roast to follow the background profile.
 
-**💡 Tip**: Each point represents a key moment in your roast. Think about when you want temperature changes to happen.
+## Roasting tips
 
-### Preview Your Changes
+- **Profile variations.** Maintain separate curve files for different bean origins, roast degrees, and processing methods.
+- **Milestone nodes.** Place control points at key transition events such as dry end, yellowing, first crack, and drop.
 
-Take a moment to review your curve and make sure it looks like the roasting profile you want to achieve.
-
----
-
-## Saving Your Work
-
-### Exit Design Mode
-
-1. **Click Tools** → **Designer** again to exit editing mode
-
-![Review Changes](images/C5.%20Deselect.png)
-
-### Save Your Curve
-
-Choose one option:
-
-**Option A: Replace the original**
-
-- **File** → **Save** (overwrites the current file)
-
-**Option B: Create a new curve**
-
-- **File** → **Save As** (creates a new file with your changes)
-
-![Save Modified Curve](images/C6.%20Save%20As.png)
-
----
-
-## Pro Tips
-
-### Create Multiple Curves for Different Situations
-
-- Different bean origins (Ethiopian, Colombian, etc.)
-- Different roast levels (light, medium, dark)
-- Different processing methods (washed, natural, honey, etc.)
-
-### Using Your Saved Curves
-
-To load any saved curve during roasting:
-
-1. **Go to Roast** → **Background** → **Load**
-2. **Select your desired curve file**
-3. **Start roasting** with your custom profile as a guide
-
----

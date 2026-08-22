@@ -2,7 +2,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Awaitable, Callable
-from typing import Literal
+from typing import Any, Literal
 
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
@@ -21,12 +21,14 @@ MAX_RECONNECTION_ATTEMPTS = 5
 BASE_RECONNECTION_DELAY_SECONDS = 5.0
 HEARTBEAT_CHECK_INTERVAL_SECONDS = 15.0
 HEARTBEAT_IDLE_THRESHOLD_SECONDS = 20.0
-# The roaster streams telemetry about once per second; a long silence means the
+# The roaster streams telemetry about once per second. A long silence means the
 # link is dead even if the OS still reports the client as connected.
 TELEMETRY_STALE_SECONDS = 30.0
 
 
 class BLEClient:
+    """Manage Bluetooth Low Energy connectivity and message routing for the roaster."""
+
     def __init__(self, machine: Machine, device_name_prefix: str = "MATCHBOX") -> None:
         self.device_name_prefix = device_name_prefix
         self.machine = machine
@@ -192,9 +194,8 @@ class BLEClient:
             logger.error(f"Error in heartbeat: {e}")
             self.connection_event.set()
 
-    async def execute_command(self, command_name: str, *args, **kwargs) -> bool:
-        """Dispatches to a `Machine` method by name; async methods receive the
-        live BleakClient as their first argument."""
+    async def execute_command(self, command_name: str, *args: Any, **kwargs: Any) -> bool:
+        """Execute a machine method by name using the active client."""
         if not (self.client is not None and self.client.is_connected):
             logger.debug("Not connected to BLE device")
             return False

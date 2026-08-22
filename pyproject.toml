@@ -1,7 +1,7 @@
 [project]
 name = "artisan-hamid-h7"
 version = "0.1.0"
-description = "WebSocket-to-BLE bridge connecting Artisan to Hamid H7/H7s coffee roasters"
+description = "WebSocket-to-BLE bridge connecting Artisan to Hamid H7 and H7s coffee roasters"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

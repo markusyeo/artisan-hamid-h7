@@ -16,6 +16,8 @@ WRITE_INTERVAL_SECONDS = 1.0
 
 
 class SerialCommands:
+    """Serial command string templates for machine communication."""
+
     FAN_DOWN = "IO3,down"
     FAN_UP = "IO3,up"
     FIRE_DOWN = "OT1,down"
@@ -28,6 +30,8 @@ class SerialCommands:
 
 
 class Machine:
+    """Manage hardware state and characteristic communication for the roaster."""
+
     def __init__(self) -> None:
         self.notify_characteristic_uuid: str | None = None
         self.write_characteristic_uuid: str | None = None
@@ -73,8 +77,7 @@ class Machine:
         return False
 
     def decode_message(self, data: bytes | bytearray) -> bool:
-        """The device notifies `[env_temp,bean_temp,heater_val,fan_val]`,
-        e.g. `[25.5,100.2,50,75]`, UTF-8 with possible NUL padding."""
+        """Decode incoming telemetry notification data into machine state fields."""
         try:
             data_str = data.decode("utf-8").strip().replace("\x00", "").strip()
             parsed_data = data_str[1:-1]
@@ -105,7 +108,7 @@ class Machine:
                 if not client.is_connected:
                     logger.error("Cannot send command: BLE client is disconnected")
                     return False
-                # Stamped before the write: a write cancelled mid-flight may still
+                # Stamped before the write because a write cancelled mid-flight may still
                 # have reached the device, so the next one must wait either way.
                 self.last_command_time = time.time()
                 await client.write_gatt_char(

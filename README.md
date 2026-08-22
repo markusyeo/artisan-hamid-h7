@@ -1,134 +1,163 @@
-# Artisan bridge for the Hamid H7/H7s coffee roaster
+# Artisan bridge for Hamid H7 and H7s coffee roasters
 
-Connects a Hamid H7/H7s roaster to [Artisan](https://github.com/artisan-roaster-scope/artisan). The bridge speaks Bluetooth Low Energy to the roaster and exposes a WebSocket server that Artisan reads temperatures from and sends control commands to.
+A local bridge connecting the Hamid H7 and H7s coffee roaster to [Artisan](https://github.com/artisan-roaster-scope/artisan). The bridge communicates with the roaster over Bluetooth Low Energy and provides a WebSocket server on `localhost:8080` for Artisan telemetry and control.
+
+```
++-------------------+           +-----------------------+           +-------------------+
+|  Hamid H7 / H7s   |  <--BLE-> |  Artisan BLE Bridge   |  <-WS->   |      Artisan      |
+|  Coffee Roaster   |           |  (localhost:8080)     |           |   Roaster Scope   |
++-------------------+           +-----------------------+           +-------------------+
+```
 
 ## Features
 
-- WebSocket server for Artisan on `localhost:8080`
-- BLE connection to the roaster (scans for devices named `MATCHBOX*`), with automatic reconnection and exponential backoff
-- Heater power, fan speed, and PID target control
-- Real-time bean temperature (BT) and environment temperature (ET) readings
-- Periodic keepalive writes so the roaster does not drop an idle connection
+- **Artisan WebSocket server.** Listens on `localhost:8080` and streams live temperature data.
+- **Automatic BLE management.** Scans for `MATCHBOX*` devices, establishes connections, and reconnects with exponential backoff.
+- **Hardware control.** Controls heater power, fan speed, and PID target temperature.
+- **Live telemetry.** Streams Bean Temperature (BT) and Environment Temperature (ET) readings every second.
+- **Connection keepalive.** Sends periodic background writes to prevent roaster idle disconnects.
+- **Safe write pacing.** Paces writes by hardware timestamps to prevent roaster microcontroller buffer overflows.
 
 ## Requirements
 
-- Python 3.10 or newer (managed automatically by uv)
-- [uv](https://docs.astral.sh/uv/)
-- A Hamid H7 or H7s roaster and a computer with Bluetooth Low Energy
-- Windows, macOS, or Linux
+- Python 3.10 or newer (managed automatically by uv).
+- [uv package manager](https://docs.astral.sh/uv/).
+- Hamid H7 or H7s coffee roaster.
+- Bluetooth Low Energy adapter on Windows, macOS, or Linux.
 
 ## Installation
 
-1. Install uv following the [official instructions](https://docs.astral.sh/uv/getting-started/installation/).
+1. Install uv by following the [official installation guide](https://docs.astral.sh/uv/getting-started/installation/).
+2. Clone the repository and install all dependencies:
 
-2. Clone the repository and install dependencies:
+```bash
+git clone https://github.com/your-username/artisan-hamid-h7.git
+cd artisan-hamid-h7
+uv sync
+```
 
-   ```bash
-   git clone https://github.com/your-username/artisan-hamid-h7.git
-   cd artisan-hamid-h7
-   uv sync
-   ```
-
-   uv installs a matching Python version and all dependencies into `.venv` automatically.
+`uv sync` creates a virtual environment in `.venv` and installs all runtime and development packages automatically.
 
 ## Usage
 
-Start the bridge:
+To start the bridge, run:
 
 ```bash
 uv run main.py
 ```
 
-The bridge then:
+When started, the bridge performs the following startup sequence:
 
-1. Starts a WebSocket server on `localhost:8080`
-2. Scans for BLE devices whose name starts with `MATCHBOX`
-3. Connects, maintains the connection, and reconnects if it drops
-4. Streams temperature data to connected clients
+1. Starts the WebSocket server on `localhost:8080`.
+2. Scans for Bluetooth Low Energy devices with names starting with `MATCHBOX`.
+3. Connects to the roaster, discovers GATT characteristics, and subscribes to telemetry notifications.
+4. Broadcasts live temperature readings to connected Artisan clients.
 
-### Logging
+### Logging options
 
-Control verbosity with `--log-level` (default: `warning`):
+To change log verbosity, provide the `--log-level` flag:
 
 ```bash
 uv run main.py --log-level debug
 ```
 
-Levels: `debug`, `info`, `warning`, `error`, `critical`, `none`.
+Available levels: `debug`, `info`, `warning`, `error`, `critical`, and `none`. The default level is `warning`.
 
 ## Connecting Artisan
 
-1. Follow the [Artisan setup guide](artisan/README.md) to configure Artisan for the Hamid H7/H7s.
-2. Start the bridge: `uv run main.py`
+1. Configure Artisan using the [Artisan setup guide](artisan/README.md).
+2. Start the bridge with `uv run main.py`.
 3. Ensure the roaster is powered on and Bluetooth is enabled on your computer.
-4. Open Artisan and start monitoring.
+4. In Artisan, click **ON** or press **Space** to begin live monitoring.
 
-## WebSocket commands
+## WebSocket command protocol
 
-| Command | Value | Description |
-| --- | --- | --- |
-| `getData` | – | Current BT/ET readings, heater, and fan values |
-| `fanUp` / `fanDown` | – | Step fan speed up or down (device's built-in step) |
-| `setFan` | 0–100 | Set fan speed |
-| `fanStep` | signed delta | Step fan speed by a custom amount, clamped to 0–100 |
-| `heaterUp` / `heaterDown` | – | Step heater power up or down (device's built-in step) |
-| `setHeater` | 0–100 | Set heater power |
-| `heaterStep` | signed delta | Step heater power by a custom amount, clamped to 0–100 |
-| `pidOn` / `pidOff` | – | Enable or disable PID temperature control |
-| `setPID` | °C | Set the PID target temperature |
+Artisan sends JSON messages to `ws://localhost:8080`.
 
-Control commands are accepted immediately (`status: accepted`) and executed asynchronously; writes to the roaster are rate-limited, and a newer command of the same kind supersedes a pending one. Values outside the valid range are rejected up front. `setFan` and `setHeater` are additionally verified against the telemetry echo and retried once if the roaster does not report the new value; unconfirmed commands are logged as errors.
+```json
+{"command": "setHeater", "value": 75}
+```
 
-`fanStep` and `heaterStep` exist for custom Artisan event buttons with a finer (or coarser) step than the device's built-in `fanUp`/`fanDown`, e.g. `{"command": "fanStep", "value": -2}`. A step resolves to an absolute set relative to the latest pending target rather than the (lagging) telemetry value, so rapid presses accumulate correctly, and the response reports the resolved target, e.g. `{"status": "accepted", "target": 43}`.
+### Supported commands
+
+| Command | Value type | Value range | Description |
+| --- | --- | --- | --- |
+| `getData` | None | None | Returns the latest BT, ET, heater power, and fan speed. |
+| `fanUp` | None | None | Increases fan speed using the device firmware step. |
+| `fanDown` | None | None | Decreases fan speed using the device firmware step. |
+| `setFan` | Integer | 0 to 100 | Sets fan speed to an absolute percentage. |
+| `fanStep` | Integer | Signed delta | Adjusts fan speed by a custom increment, clamped to 0 to 100. |
+| `heaterUp` | None | None | Increases heater power using the device firmware step. |
+| `heaterDown` | None | None | Decreases heater power using the device firmware step. |
+| `setHeater` | Integer | 0 to 100 | Sets heater power to an absolute percentage. |
+| `heaterStep` | Integer | Signed delta | Adjusts heater power by a custom increment, clamped to 0 to 100. |
+| `pidOn` | None | None | Enables roaster PID temperature regulation. |
+| `pidOff` | None | None | Disables roaster PID temperature regulation. |
+| `setPID` | Float | Value > 0 | Sets the PID target temperature in degrees Celsius. |
+
+### Command lifecycle and execution guarantees
+
+- **Immediate response.** Commands return `{"status": "accepted"}` immediately and execute in the background.
+- **Write pacing.** Hardware writes are spaced at least 1.0 second apart based on previous execution timestamps.
+- **Command supersession.** A new command of a given type cancels any pending write of that same type.
+- **Telemetry echo confirmation.** `setFan` and `setHeater` commands poll roaster telemetry notifications. If the roaster does not report the requested target within 5.0 seconds, the bridge retries the write once.
+- **Accumulative stepping.** `fanStep` and `heaterStep` resolve relative to the latest pending target rather than lagging telemetry. Rapid button clicks accumulate accurately without losing intermediate steps.
 
 ## Development
 
-Type checking and linting:
+### Running verification tools
+
+Run the verification suite from the repository root:
 
 ```bash
-uv run pyrefly check   # type check
-uv run ruff check .    # lint
-uv run ruff format .   # format
-uv run pytest          # tests
+uv run pyrefly check    # Type checking
+uv run ruff check .     # Linter
+uv run ruff format .    # Formatter
+uv run pytest           # Unit tests
 ```
 
-Both tools are configured in [`pyproject.toml`](pyproject.toml) and installed by `uv sync` as dev dependencies.
+### Git pre-commit hook
 
-To run all of them automatically before every commit, install the git hook once:
+To enforce code checks before every commit, install the pre-commit hook:
 
 ```bash
 uv run pre-commit install
 ```
 
-The hook (configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml)) blocks any commit that fails linting, formatting, type checking, or the test suite. Run it manually with `uv run pre-commit run --all-files`.
+To run all checks manually across the repository:
+
+```bash
+uv run pre-commit run --all-files
+```
 
 ## Troubleshooting
 
-**Device not found**
+### Device not found
 
-- Ensure Bluetooth is turned on and the roaster is powered on and nearby.
-- Verify the device name starts with `MATCHBOX`.
+- Ensure the roaster is powered on and within Bluetooth range.
+- Confirm Bluetooth is enabled on the host computer.
+- Verify the roaster broadcasts a device name starting with `MATCHBOX`.
 
-**Connection drops frequently**
+### Connection drops frequently
 
-- Check Bluetooth signal strength.
-- Ensure no other application is connected to the roaster.
-- Restart with debug logging: `uv run main.py --log-level debug`
+- Check Bluetooth signal strength and remove physical obstructions.
+- Ensure no other application or phone is connected to the roaster.
+- Restart the bridge with `--log-level debug` to inspect reconnection events.
 
-**Commands not working**
+### Commands do not take effect
 
-- Verify the BLE status shows `Connected` (included in every data broadcast).
-- Check the logs for command execution errors.
-- Commands are rate-limited to avoid overwhelming the roaster; rapid changes are coalesced.
+- Verify the WebSocket telemetry payload reports `"status": "Connected"`.
+- Check bridge terminal logs for hardware write errors or rejection notices.
+- Avoid sending conflicting inputs faster than the 1.0 second hardware pacing window.
 
 ## Architecture
 
-- [`main.py`](main.py) — entry point: argument parsing, logging setup, task lifecycle
-- [`src/websocket_server.py`](src/websocket_server.py) — WebSocket server handling Artisan communication
-- [`src/command_handler.py`](src/command_handler.py) — maps WebSocket commands to machine operations, fire-and-forget scheduling
-- [`src/ble_client.py`](src/ble_client.py) — BLE scanning, connection lifecycle, reconnection, heartbeat
-- [`src/machine.py`](src/machine.py) — H7 serial protocol: command encoding, telemetry decoding, write pacing
+- [`main.py`](main.py) parses command-line arguments, configures logging, and coordinates task lifecycles.
+- [`src/websocket_server.py`](src/websocket_server.py) runs the WebSocket server and broadcasts telemetry packets.
+- [`src/command_handler.py`](src/command_handler.py) validates client commands, resolves relative steps, and manages retry queues.
+- [`src/ble_client.py`](src/ble_client.py) manages BLE discovery, connections, telemetry callbacks, and idle keepalive tasks.
+- [`src/machine.py`](src/machine.py) encodes TC4-compatible serial commands, decodes telemetry strings, and enforces write pacing.
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the [MIT License](LICENSE).

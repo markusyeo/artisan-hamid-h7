@@ -8,8 +8,7 @@ from src.command_handler import CommandHandler
 
 
 class FakeBLEClient:
-    """Stands in for BLEClient; echoes written set-values into telemetry
-    fields the way the real roaster does, unless echo is disabled."""
+    """Mock BLEClient that echoes written set values into telemetry fields."""
 
     def __init__(self, echo: bool = True) -> None:
         self.status = "Connected"

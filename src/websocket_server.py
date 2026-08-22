@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class WebSocketServer:
+    """WebSocket server bridging clients to the roaster BLE interface."""
+
     def __init__(self, port: int = 8080, host: str = "localhost") -> None:
         self.port = port
         self.host = host
@@ -32,8 +34,8 @@ class WebSocketServer:
         if not self.ble_client:
             return
 
-        # The "data" envelope and the BT/ET field names are what Artisan's
-        # WebSocket device protocol expects.
+        # The data envelope and the BT and ET field names match Artisan
+        # WebSocket device protocol expectations.
         message = json.dumps(
             {
                 "data": {
